@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:  # ✅ Enables manual trigger
+  workflow_dispatch:  
 
 jobs:
   test:
@@ -36,4 +36,4 @@ jobs:
       - name: Cache Python packages
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pi
+          path: ~/.cache/pip
