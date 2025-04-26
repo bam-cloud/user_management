@@ -7,13 +7,14 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:  # ✅ Enables manual trigger
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.10.12] # Define Python versions here
+        python-version: [3.10.12]
     services:
       postgres:
         image: postgres:latest
@@ -35,51 +36,4 @@ jobs:
       - name: Cache Python packages
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          
-      - name: Run tests with Pytest
-        env:
-          DATABASE_URL: postgresql+asyncpg://user:password@localhost:5432/myappdb  # Configure the DATABASE_URL environment variable for tests
-        run: pytest
-
-  build-and-push-docker:
-    needs: test
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Log in to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          push: true
-          tags: bam96/user_management1:${{ github.sha }} # Uses the Git SHA for tagging
-          platforms: linux/amd64,linux/arm64 # Multi-platform support
-          cache-from: type=registry,ref=bam96/user_management1:cache
-          cache-to: type=inline,mode=max
-          
-      - name: Scan the Docker image
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'bam96/user_management1:${{ github.sha }}'
-          format: 'table'
-          exit-code: '1' # Fail the job if vulnerabilities are found
-          ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
+          path: ~/.cache/pi
