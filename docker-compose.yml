@@ -1,59 +1,27 @@
-version: '3.8'
+FROM python:3.10-slim-bullseye
 
-services:
-  postgres:
-    image: postgres:16.2
-    environment:
-      POSTGRES_DB: myappdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d myappdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app-network
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: adminpassword
-      PGADMIN_LISTEN_PORT: 80
-    depends_on:
-      - postgres
-    ports:
-      - "5050:80" # Expose PgAdmin on port 5050 of the host
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    networks:
-      - app-network
+# Set work directory
+WORKDIR /app
 
-  fastapi:
-    build: .
-    volumes:
-      - ./:/myapp/
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - app-network
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y gcc libpq-dev build-essential && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-  nginx:
-    image: nginx:latest
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - fastapi
-    networks:
-      - app-network
+# Copy project files
+COPY requirements.txt .
 
-volumes:
-  postgres-data:
-  pgadmin-data:
+# Install Python dependencies
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-networks:
-  app-network:
+# Copy the rest of the application code
+COPY . .
+
+# Command to run the application (adjust if needed)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
