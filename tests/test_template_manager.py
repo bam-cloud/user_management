@@ -1,6 +1,6 @@
 import pytest
- from app.utils.template_manager import TemplateManager
- from unittest.mock import mock_open, patch
+from app.utils.template_manager import TemplateManager
+from unittest.mock import mock_open, patch
  
  # Fixture to create an instance of TemplateManager
  @pytest.fixture
