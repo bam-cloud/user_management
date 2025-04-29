@@ -6,6 +6,13 @@ from app.models.user_model import User, UserRole
 from app.utils.nickname_gen import generate_nickname
 from app.utils.security import hash_password
 from app.services.jwt_service import decode_token  # Import your FastAPI app
+from datetime import datetime
+import sqlalchemy as sa
+import bcrypt
+import uuid
+from sqlalchemy import insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
 
 # Example of a test function using the async_client fixture
 @pytest.mark.asyncio
@@ -150,6 +157,24 @@ async def test_delete_user_does_not_exist(async_client, admin_token):
     delete_response = await async_client.delete(f"/users/{non_existent_user_id}", headers=headers)
     assert delete_response.status_code == 404
 
+@pytest.fixture
+async def test_user(db_session):
+     new_user = User(
+         id=uuid.uuid4(),  # Ensure a unique ID if not automatically generated
+         email="testuser@example.com",
+         nickname="TestUser",
+         role="ADMIN"  # Assuming 'USER' is a valid role in your schema
+     )
+     password = "securepassword"
+     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+     new_user.hashed_password = hashed_password.decode()  # Ensure the hashed password is correctly assigned
+     
+     # Add the new user to the session and commit
+     db_session.add(new_user)
+     await db_session.commit()
+     return new_user
+ 
+ 
 @pytest.mark.asyncio
 async def test_update_user_github(async_client, admin_user, admin_token):
     updated_data = {"github_profile_url": "http://www.github.com/kaw393939"}
