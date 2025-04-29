@@ -29,7 +29,7 @@ RUN python -m venv /.venv \
 FROM python:3.12-slim-bookworm AS final
 
 # Install libc-bin in the final stage (without a version constraint)
-RUN apt-get update && apt-get install -y libc-bin \
+RUN apt-get update && apt-get install -y libc-bin=2.36-9+deb12u7 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
